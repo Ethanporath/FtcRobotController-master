@@ -78,7 +78,7 @@ public class MecanumTeleOp extends LinearOpMode {
             if (gamepad1.a) arm = ServoHeights.collect;
             if (gamepad1.b) arm = ServoHeights.dump;
             if (gamepad1.left_bumper) hand = ServoCollect.out;
-            if (gamepad1.right_bumper) hand = ServoCollect.in;
+            else if (gamepad1.right_bumper) hand = ServoCollect.in;
             else hand = ServoCollect.Hold;
 
 
