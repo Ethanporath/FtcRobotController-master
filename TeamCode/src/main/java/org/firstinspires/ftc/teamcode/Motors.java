@@ -17,7 +17,7 @@ public class Motors {
         fr = hardwareMap.dcMotor.get("FrontRight");
         br = hardwareMap.dcMotor.get("BackRight");
 
-        // Reverse the left side motors
+        // Reverse the right side motors
         fl.setDirection(DcMotorSimple.Direction.REVERSE);
         bl.setDirection(DcMotorSimple.Direction.REVERSE);
     }
