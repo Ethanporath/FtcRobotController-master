@@ -46,13 +46,15 @@ public class MecanumTeleOp extends LinearOpMode {
         Servo armright = hardwareMap.servo.get("armright");
         CRServo intake = hardwareMap.crservo.get("hand");
         CRServo Ducks = hardwareMap.crservo.get("duck");
+        DcMotor Linearslide = hardwareMap.dcMotor.get("linearslide");
+
 
         //Declaring our Enums
         Servos.ServoHeights leftArm = Servos.ServoHeights.collectLeft;
         Servos.ServoHeights rightArm = Servos.ServoHeights.collectRight;
         Servos.ServoCollect hand = Servos.ServoCollect.in;
         Servos.ServoCollect duck = Servos.ServoCollect.in;
-
+        Motors.Linearslide linearslide = Motors.Linearslide.in;
 
         //Gamepad Controls
         double lx, ly, rx;
@@ -75,6 +77,8 @@ public class MecanumTeleOp extends LinearOpMode {
             if (gamepad1.dpad_left) motors.Strafe(-0.6);
             if (gamepad1.dpad_right) motors.Strafe(0.6);
 
+
+
             if (gamepad1.right_trigger > 0.1) {
                 if (gamepad1.b) hand = Servos.ServoCollect.in;
                 else if (gamepad1.left_trigger > 0.1) hand = Servos.ServoCollect.out;
@@ -87,17 +91,14 @@ public class MecanumTeleOp extends LinearOpMode {
             } else if (gamepad1.left_bumper) {
                 hand = Servos.ServoCollect.out;
             } else if (gamepad1.a) {
-                hand = Servos.ServoCollect.in;
-                rightArm = Servos.ServoHeights.dumpRightmid;
-                leftArm = Servos.ServoHeights.dumpLeftmid;
+                linearslide = Motors.Linearslide.out;
             } else if (gamepad1.y) {
-                hand = Servos.ServoCollect.in;
-                rightArm = Servos.ServoHeights.dumpRightbottom;
-                leftArm = Servos.ServoHeights.dumpLeftbottom;
+                linearslide = Motors.Linearslide.in;
             } else {
                 hand = Servos.ServoCollect.Hold;
                 rightArm = Servos.ServoHeights.collectRight;
                 leftArm = Servos.ServoHeights.collectLeft;
+                linearslide = Motors.Linearslide.stop;
                 if (gamepad1.b) hand = Servos.ServoCollect.in;
                 else if (gamepad1.left_trigger > 0.1) hand = Servos.ServoCollect.out;
             }
@@ -116,6 +117,7 @@ public class MecanumTeleOp extends LinearOpMode {
             armright.setPosition(rightArm.value);
             intake.setPower(hand.value);
             Ducks.setPower(duck.value);
+            Linearslide.setPower(linearslide.value);
 
             denominator = 2.4;
             frontLeft = (ly + lx + rx) / denominator;

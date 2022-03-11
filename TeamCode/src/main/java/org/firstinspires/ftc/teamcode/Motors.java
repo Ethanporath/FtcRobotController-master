@@ -10,16 +10,20 @@ public class Motors {
     DcMotor fr;
     DcMotor bl;
     DcMotor br;
+    DcMotor ls;
 
     public Motors(HardwareMap hardwareMap) {
         fl = hardwareMap.dcMotor.get("FrontLeft");
         bl = hardwareMap.dcMotor.get("BackLeft");
         fr = hardwareMap.dcMotor.get("FrontRight");
         br = hardwareMap.dcMotor.get("BackRight");
+        ls = hardwareMap.dcMotor.get("linearslide");
 
         // Reverse the right side motors
         fl.setDirection(DcMotorSimple.Direction.REVERSE);
         bl.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
     }
 
     public void Drive(double power) {
@@ -48,6 +52,37 @@ public class Motors {
         bl.setPower(0);
         fr.setPower(0);
         br.setPower(0);
+    }
+    public enum Linearslide {
+        out(-.5),
+        in(.5),
+        stop(0);
+
+        public final double value;
+
+        private Linearslide(double value) {
+            this.value = value;
+        }
+    }
+
+    public void Linearslidego(double distance) {
+        Motors.ls.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        double circumfrence = 3.14*2;//pi * diameter
+        double rotationsNeeded =distance/circumfrence;
+        int encoderDrivingTarget = (int)(rotationsNeeded*560);
+        Motors.ls.setTargetPosition(encoderDrivingTarget);
+
+        Motors.ls.setPower(.75);
+        Thread.sleep(500);
+
+        Motors.ls.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        while (Motors.ls.isBusy()) {
+
+        }
+        //stop the motor
+        Motors.ls.setPower(0);
+
     }
 
 
