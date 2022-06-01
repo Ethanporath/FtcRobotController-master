@@ -65,23 +65,22 @@ public class Motors {
         }
     }
 
-    public void Linearslidego(double distance) {
-        Motors.ls.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        double circumfrence = 3.14*2;//pi * diameter
+    public void Linearslidego(double distance, double power) {
+        ls.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        double circumfrence = 3.14*1.6;//pi * diameter
         double rotationsNeeded =distance/circumfrence;
         int encoderDrivingTarget = (int)(rotationsNeeded*560);
-        Motors.ls.setTargetPosition(encoderDrivingTarget);
+        ls.setTargetPosition(encoderDrivingTarget);
 
-        Motors.ls.setPower(.75);
-        Thread.sleep(500);
+        ls.setPower(power);
 
-        Motors.ls.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        ls.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        while (Motors.ls.isBusy()) {
+        while (ls.isBusy()) {
 
         }
         //stop the motor
-        Motors.ls.setPower(0);
+        ls.setPower(0);
 
     }
 

@@ -49,12 +49,12 @@ public class MecanumTeleOp extends LinearOpMode {
         DcMotor Linearslide = hardwareMap.dcMotor.get("linearslide");
 
 
+
         //Declaring our Enums
         Servos.ServoHeights leftArm = Servos.ServoHeights.collectLeft;
         Servos.ServoHeights rightArm = Servos.ServoHeights.collectRight;
         Servos.ServoCollect hand = Servos.ServoCollect.in;
         Servos.ServoCollect duck = Servos.ServoCollect.in;
-        Motors.Linearslide linearslide = Motors.Linearslide.in;
 
         //Gamepad Controls
         double lx, ly, rx;
@@ -91,14 +91,13 @@ public class MecanumTeleOp extends LinearOpMode {
             } else if (gamepad1.left_bumper) {
                 hand = Servos.ServoCollect.out;
             } else if (gamepad1.a) {
-                linearslide = Motors.Linearslide.out;
+                motors.Linearslidego(-22,.75);
             } else if (gamepad1.y) {
-                linearslide = Motors.Linearslide.in;
+                motors.Linearslidego(22,.75);
             } else {
                 hand = Servos.ServoCollect.Hold;
                 rightArm = Servos.ServoHeights.collectRight;
                 leftArm = Servos.ServoHeights.collectLeft;
-                linearslide = Motors.Linearslide.stop;
                 if (gamepad1.b) hand = Servos.ServoCollect.in;
                 else if (gamepad1.left_trigger > 0.1) hand = Servos.ServoCollect.out;
             }
@@ -117,7 +116,6 @@ public class MecanumTeleOp extends LinearOpMode {
             armright.setPosition(rightArm.value);
             intake.setPower(hand.value);
             Ducks.setPower(duck.value);
-            Linearslide.setPower(linearslide.value);
 
             denominator = 2.4;
             frontLeft = (ly + lx + rx) / denominator;
@@ -134,6 +132,7 @@ public class MecanumTeleOp extends LinearOpMode {
             telemetry.addData("Rightfront", frontRight);
             telemetry.addData("Leftback", backLeft);
             telemetry.addData("Rightback", backRight);
+            telemetry.addData("Ls", motors.ls.getCurrentPosition());
             telemetry.addData("Time", runtime.seconds());
             telemetry.update();
 
