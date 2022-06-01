@@ -23,12 +23,17 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.Axis;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.teamcode.PurePursuit.CurvePoint;
+import org.firstinspires.ftc.teamcode.PurePursuit.RobotMovement;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -62,9 +67,10 @@ public class RedAuto extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        // Autos auto = new Autos(hardwareMap);
         drive.setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap));
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
+/*
         Servo armleft = hardwareMap.servo.get("armleft");
         Servo armright = hardwareMap.servo.get("armright");
         CRServo intake = hardwareMap.crservo.get("hand");
@@ -86,275 +92,36 @@ public class RedAuto extends LinearOpMode {
         }
         armleft.setPosition(Servos.ServoHeights.initLeft.value);
         armright.setPosition(Servos.ServoHeights.initRight.value);
+        */
         waitForStart();
         runtime.reset();
 
         if (opModeIsActive()) {
-            armleft.setPosition(Servos.ServoHeights.scanLeft.value);
-            armright.setPosition(Servos.ServoHeights.scanRight.value);
-            Thread.sleep(3000);
+            ArrayList<CurvePoint> allpoints = new ArrayList<>();
+            allpoints.add(new CurvePoint(0,0,1.0,1.0,50,Math.toRadians(50),1.0));
 
-            while (runtime.seconds() <= 1.0 && !Left && !Center) {
-                if (tfod != null) {
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                    if (updatedRecognitions != null) {
-                        if (updatedRecognitions.size() == 1) {
-                            if (updatedRecognitions.get(0).getTop() < 200) {
-                                Left = true;
-                                telemetry.addData("left", updatedRecognitions.get(0).getTop());
-                            } else {
-                                Center = true;
-                                telemetry.addData("center", updatedRecognitions.get(0).getTop());
-                            }
-                            break;
-                        }
-                    }
-                }
+            allpoints.add(new CurvePoint(10,10,1.0,1.0,50,Math.toRadians(90),1.0));
+            allpoints.add(new CurvePoint(100,100,1.0,1.0,50,Math.toRadians(50),1.0));
 
-            }
-
-
-            if (tfod != null) {
-                tfod.shutdown();
-            }
-
-            if (!Left && !Center) {
-                Right = true;
-                telemetry.addLine("right");
-            }
-
-
-            telemetry.update();
-
-            if (Left == true) {
-                rightArm = Servos.ServoHeights.dumpRightbottom;
-                leftArm = Servos.ServoHeights.dumpLeftbottom;
-                telemetry.addLine("Bottom");
-
-            } else if (Right == true) {
-                rightArm = Servos.ServoHeights.dumpRighttop;
-                leftArm = Servos.ServoHeights.dumpLefttop;
-                telemetry.addLine("Top");
-            } else {
-                rightArm = Servos.ServoHeights.dumpRightmid;
-                leftArm = Servos.ServoHeights.dumpLeftmid;
-                telemetry.addLine("Center");
-            }
-            armleft.setPosition(leftArm.value);
-            armright.setPosition(rightArm.value);
-
-            DRIVE(-2,drive,false);
-            STRAFE(18, drive, false); //Left 0,-16
-            Ducks.setPower(duck.in.value);
-            Thread.sleep(12000);
-            Ducks.setPower(duck.Hold.value);
-            STRAFE(0, drive,true);
-            Thread.sleep(250);
-            DRIVE(-14, drive,false ); //-21,30
-            Thread.sleep(250);
-            STRAFE(-30, drive, true);// - 0,30
-            Thread.sleep(250);
-            drive.updatePoseEstimate();
-            if (drive.getPoseEstimate().getY() > -30) STRAFE(-30, drive, true);// - 0,30
-            else if (drive.getPoseEstimate().getY() < -30) STRAFE(-30, drive, false);// - 0,30
-            if (Right)DRIVE(-21.5, drive,false ); //-21,30
-            if (Center) DRIVE(-20, drive,false ); //-22.5,30
-            if (Left) DRIVE(-18.5, drive,false ); //-24,30
-
-            intake.setPower(Servos.ServoCollect.out.value);
-            Thread.sleep(2500);
-            intake.setPower(Servos.ServoCollect.Hold.value);
-            intake.setPower(Servos.ServoCollect.in.value);
-            rightArm = Servos.ServoHeights.intakeRight;
-            leftArm = Servos.ServoHeights.intakeLeft;
-            armleft.setPosition(leftArm.value);
-            armright.setPosition(rightArm.value);
-            Thread.sleep(2000);
-
-            //THIS IS THE START OF CODE FOR A SECOND BLOCK!!!!!
-            DRIVE(-4, drive, true);
-            Thread.sleep(250);
-            intake.setPower(Servos.ServoCollect.Hold.value);
-            rightArm = Servos.ServoHeights.dumpRighttop;
-            leftArm = Servos.ServoHeights.dumpLefttop;
-            armleft.setPosition(leftArm.value);
-            armright.setPosition(rightArm.value);
-            Thread.sleep(1000);
-            DRIVE(-21.5,drive,false);
-            Thread.sleep(250);
-            intake.setPower(Servos.ServoCollect.out.value);
-            Thread.sleep(2500);
-            intake.setPower(Servos.ServoCollect.Hold.value);
-            //THIS IS THE END OF CODE FOR A SECOND BLOCK!!!!!!
-
-            //THIS IS THE START OF THE CODE FOR DRIVING INTO THE WAREHOUSE
-    //        TURN(drive);
-      //      drive.setDrivePower(new Pose2d(0.8, 0, 0));
-        //    Thread.sleep(1500);
-          //  drive.setDrivePower(new Pose2d(0, 0, 0));
-            //THIS IS THE START OF THE CODE FOR DRIVING INTO THE WAREHOUSE
-
-            /*
-            DRIVE(-22.5, drive, false); //-21,30
-            if (drive.getPoseEstimate().getY() > -33) {
-                STRAFE(-35, drive, true);// - 0,30
-            } else if  (drive.getPoseEstimate().getY() < -35) {
-                    STRAFE(-35, drive, false);// - 0,30
-            }
-            intake.setPower(Servos.ServoCollect.out.value);
-            Thread.sleep(2500);
-            intake.setPower(Servos.ServoCollect.Hold.value);
-            DRIVE(-13,drive,true);
-            //STRAFE( -51, drive, true );
-            //Thread.sleep(250);
-            //if (drive.getPoseEstimate().getY() < -51) {
-            //    STRAFE(-51, drive, true);// - 0,30
-            //} else {
-            //    STRAFE(-51, drive, false);// - 0,30
-            //}
-            //if (drive.getPoseEstimate().getX() > -15) {
-            //    DRIVE(-15, drive, false);// - 0,30
-            //} else {
-            //    DRIVE(-15, drive, true);// - 0,30
-            //}
-
-
-            //turn
-            //strafe
-            //drive forwards*/
-
-            /*DRIVE(-1.5,drive, true);
-            rightArm = Servos.ServoHeights.dumpRighttop;
-            leftArm = Servos.ServoHeights.dumpLefttop;
-            armleft.setPosition(leftArm.value);
-            armright.setPosition(rightArm.value);
-            Thread.sleep(1500);
-
-            STRAFE(0,drive,false);
-            Thread.sleep(500);
-            DRIVE(-24,drive,false);
-            Thread.sleep(500);
-            STRAFE(18,drive,false);*/
-
-
+            RobotMovement.followCurve(allpoints,Math.toRadians(90),drive);
 
 
             while (!isStopRequested()) {
                 Pose2d poseEstimate = drive.getPoseEstimate();
-                telemetry.addData("finalX", poseEstimate.getX());
-                telemetry.addData("finalY", poseEstimate.getY());
+                telemetry.addData("FinalX", Math.toDegrees(poseEstimate.getX()));
+                telemetry.addData("FinalY", Math.toDegrees(poseEstimate.getY()));
                 telemetry.addData("finalHeading", Math.toDegrees(poseEstimate.getHeading()));
                 telemetry.update();
+                sleep(10000);
             }
         }
     }
 
 
 
-    public void DRIVE(double distance, SampleMecanumDrive drive, boolean forwards) {
-        NanoClock clock = NanoClock.system();
-        double profileStart = clock.seconds();
-        boolean movingForwards = true;
-        double StartX = drive.getPoseEstimate().getX();
-        double StartY = drive.getPoseEstimate().getY();
-        MotionProfile activeProfile = generateProfile(true, distance-StartX);
-
-        while (!isStopRequested()) {
-            double profileTime = clock.seconds() - profileStart;
-            if (profileTime > activeProfile.duration()) {
-                // generate a new profile
-                movingForwards = !movingForwards;
-                activeProfile = generateProfile(movingForwards, distance-StartX);
-                profileStart = clock.seconds();
-            }
-
-            MotionState motionState = activeProfile.get(profileTime);
-            double targetPower = Kinematics.calculateMotorFeedforward(motionState.getV(), motionState.getA(), kV, kA, kStatic);
-            Pose2d poseEstimate = drive.getPoseEstimate();
-
-            double theta = drive.getPoseEstimate().getHeading();
-            double headingError = Math.min(2*Math.PI-theta,theta)/(Math.PI);
-            if (theta<0) {
-                headingError *= -1;
-            }
-            if (forwards) {
-                headingError *= -1;
-            }
-            double yError = (StartY-drive.getPoseEstimate().getY())/10;
-
-            drive.setDrivePower(new Pose2d(targetPower, yError, headingError));
-            drive.updatePoseEstimate();
-
-            double xError = (StartX-drive.getPoseEstimate().getX())/10;
-
-            if (forwards && (drive.getPoseEstimate().getX() >= distance|| targetPower <= 0)) {
-                drive.setDrivePower(new Pose2d(0, 0, 0));
-                break;
-            }
-            if (!forwards && (drive.getPoseEstimate().getX() <= distance || targetPower >= 0)) {
-                drive.setDrivePower(new Pose2d(0, 0, 0));
-                break;
-            }
-            telemetry.addData("StartX", StartX);
-            telemetry.addData("TargetPower", targetPower);
-            telemetry.addData("X", drive.getPoseEstimate().getX());
-            telemetry.addData("heading", Math.toDegrees(poseEstimate.getHeading()));
-            telemetry.update();
-        }
-
-    }
-
-    public void STRAFE(double distance, SampleMecanumDrive drive, boolean left) { ;
-        NanoClock clock = NanoClock.system();
-        double profileStart = clock.seconds();
-        boolean movingForwards = true;
-        double StartY = drive.getPoseEstimate().getY();
-        double StartX = drive.getPoseEstimate().getX();
-        MotionProfile activeProfile = generateProfile(true, (distance-StartY) *1.85);
 
 
-        while (!isStopRequested()) {
-            double profileTime = clock.seconds() - profileStart;
-            if (profileTime > activeProfile.duration()) {
-                // generate a new profile
-                movingForwards = !movingForwards;
-                activeProfile = generateProfile(movingForwards, (distance-StartY) *1.85);
-                profileStart = clock.seconds();
-            }
 
-            MotionState motionState = activeProfile.get(profileTime);
-            double targetPower = Kinematics.calculateMotorFeedforward(motionState.getV(), motionState.getA(), kV, kA, kStatic);
-
-            double theta = drive.getPoseEstimate().getHeading();
-            double headingError = Math.min(2*Math.PI-theta,theta)/(Math.PI);
-            if (theta<0) {
-                headingError *= -1;
-            }
-            if (!left) {
-                headingError *= -1;
-            }
-            double xError = (StartX-drive.getPoseEstimate().getX())/10;
-
-
-            drive.setDrivePower(new Pose2d(xError, targetPower, headingError));
-            drive.updatePoseEstimate();
-
-            if (left && (drive.getPoseEstimate().getY() <= (distance) || targetPower >= 0)) {
-                drive.setDrivePower(new Pose2d(0, 0, 0));
-                break;
-            }
-            if (!left && (drive.getPoseEstimate().getY() >= (distance) || targetPower <= 0)) {
-                drive.setDrivePower(new Pose2d(0, 0, 0));
-                break;
-            }
-            Pose2d poseEstimate = drive.getPoseEstimate();
-            telemetry.addData("StartY", StartY);
-            telemetry.addData("TargetPower", targetPower);
-            telemetry.addData("Y", drive.getPoseEstimate().getY());
-            telemetry.addData("heading", Math.toDegrees(poseEstimate.getHeading()));
-            telemetry.update();
-        }
-    }
     public void TURN (SampleMecanumDrive drive){
         while  ((Math.toDegrees(drive.getPoseEstimate().getHeading())<90 || Math.toDegrees(drive.getPoseEstimate().getHeading())>270) && !isStopRequested()) {
             double theta = drive.getPoseEstimate().getHeading();
@@ -387,6 +154,58 @@ public class RedAuto extends LinearOpMode {
         tfodParameters.minimumConfidence = 0.8;
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
+    }
+    public void DRIVE(double distance, SampleMecanumDrive drive, boolean forwards) {
+        NanoClock clock = NanoClock.system();
+        double profileStart = clock.seconds();
+        boolean movingForwards = true;
+        double StartX = drive.getPoseEstimate().getX();
+        double StartY = drive.getPoseEstimate().getY();
+        double StartT = drive.getPoseEstimate().getHeading();
+        MotionProfile activeProfile = generateProfile(true, distance - StartX);
+
+        while (!isStopRequested()) {
+            double profileTime = clock.seconds() - profileStart;
+            if (profileTime > activeProfile.duration()) {
+                // generate a new profile
+                movingForwards = !movingForwards;
+                activeProfile = generateProfile(movingForwards, distance - StartX);
+                profileStart = clock.seconds();
+            }
+
+            MotionState motionState = activeProfile.get(profileTime);
+            double targetPower = Kinematics.calculateMotorFeedforward(motionState.getV(), motionState.getA(), kV, kA, kStatic);
+            Pose2d poseEstimate = drive.getPoseEstimate();
+
+            double theta = drive.getPoseEstimate().getHeading();
+            double headingError = Math.min(2 * Math.PI - theta, theta) / (Math.PI);
+            if (theta < 0) {
+                headingError *= -1;
+            }
+            if (forwards) {
+                headingError *= -1;
+            }
+            double yError = (StartY - drive.getPoseEstimate().getY()) / 10;
+
+            drive.setDrivePower(new Pose2d(targetPower, yError, headingError));
+            drive.updatePoseEstimate();
+
+            double xError = (StartX - drive.getPoseEstimate().getX()) / 10;
+
+            if (forwards && (drive.getPoseEstimate().getX() >= distance || targetPower <= 0)) {
+                drive.setDrivePower(new Pose2d(0, 0, 0));
+                break;
+            }
+            if (!forwards && (drive.getPoseEstimate().getX() <= distance || targetPower >= 0)) {
+                drive.setDrivePower(new Pose2d(0, 0, 0));
+                break;
+            }
+            telemetry.addData("StartX", StartX);
+            telemetry.addData("TargetPower", targetPower);
+            telemetry.addData("X", drive.getPoseEstimate().getX());
+            telemetry.addData("heading", Math.toDegrees(poseEstimate.getHeading()));
+        }
+
     }
 }
 

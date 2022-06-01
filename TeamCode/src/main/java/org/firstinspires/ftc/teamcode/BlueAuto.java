@@ -41,6 +41,7 @@ public class BlueAuto extends LinearOpMode {
         MotionState goal = new MotionState(movingForward ? DISTANCE : 0, 0, 0, 0);
         return MotionProfileGenerator.generateSimpleMotionProfile(start, goal, MAX_VEL, MAX_ACCEL);
     }
+
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_FIRST_ELEMENT = "Gold Mineral";
     private static final String LABEL_SECOND_ELEMENT = "Silver Mineral";
@@ -60,10 +61,13 @@ public class BlueAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-
+/*
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        //Autos auto = new Autos(hardwareMap);
         drive.setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap));
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
 
         Servo armleft = hardwareMap.servo.get("armleft");
         Servo armright = hardwareMap.servo.get("armright");
@@ -142,23 +146,23 @@ public class BlueAuto extends LinearOpMode {
             armleft.setPosition(leftArm.value);
             armright.setPosition(rightArm.value);
 
-            DRIVE(-2,drive,false);
-            STRAFE(-18, drive, true); //Left 0,-16
+            auto.DRIVE(-2,drive,false);
+            auto.STRAFE(-18, drive, true); //Left 0,-16
             Ducks.setPower(duck.out.value);
             Thread.sleep(9000);
             Ducks.setPower(duck.Hold.value);
-            STRAFE(0, drive,false);
+            auto.STRAFE(0, drive,false);
             Thread.sleep(250);
-            DRIVE(-14, drive,false ); //-21,30
+            auto.DRIVE(-14, drive,false ); //-21,30
             Thread.sleep(250);
-            STRAFE(30, drive, false);// - 0,30
+            auto.STRAFE(30, drive, false);// - 0,30
             Thread.sleep(250);
             drive.updatePoseEstimate();
-            if (drive.getPoseEstimate().getY() > 30) STRAFE(30, drive, false);// - 0,30
-            else if (drive.getPoseEstimate().getY() < 30) STRAFE(30, drive, true);// - 0,30
-            if (Right)DRIVE(-21.5, drive,false ); //-21,30
-            if (Center) DRIVE(-20, drive,false ); //-22.5,30
-            if (Left) DRIVE(-18.5, drive,false ); //-24,30
+            if (drive.getPoseEstimate().getY() > 30) auto.STRAFE(30, drive, false);// - 0,30
+            else if (drive.getPoseEstimate().getY() < 30) auto.STRAFE(30, drive, true);// - 0,30
+            if (Right)auto.DRIVE(-21.5, drive,false ); //-21,30
+            if (Center) auto.DRIVE(-20, drive,false ); //-22.5,30
+            if (Left) auto.DRIVE(-18.5, drive,false ); //-24,30
 
             intake.setPower(Servos.ServoCollect.out.value);
             Thread.sleep(2500);
@@ -171,7 +175,7 @@ public class BlueAuto extends LinearOpMode {
             Thread.sleep(2000);
 
             //THIS IS THE START OF CODE FOR A SECOND BLOCK!!!!!
-            DRIVE(-4, drive, true);
+            auto.DRIVE(-4, drive, true);
             Thread.sleep(250);
             intake.setPower(Servos.ServoCollect.Hold.value);
             rightArm = Servos.ServoHeights.dumpRighttop;
@@ -179,7 +183,7 @@ public class BlueAuto extends LinearOpMode {
             armleft.setPosition(leftArm.value);
             armright.setPosition(rightArm.value);
             Thread.sleep(1000);
-            DRIVE(-23,drive,false);
+            auto.DRIVE(-23,drive,false);
             Thread.sleep(250);
             intake.setPower(Servos.ServoCollect.out.value);
             Thread.sleep(2500);
@@ -204,114 +208,6 @@ public class BlueAuto extends LinearOpMode {
         }
     }
 
-
-
-    public void DRIVE(double distance, SampleMecanumDrive drive, boolean forwards) {
-        NanoClock clock = NanoClock.system();
-        double profileStart = clock.seconds();
-        boolean movingForwards = true;
-        double StartX = drive.getPoseEstimate().getX();
-        double StartY = drive.getPoseEstimate().getY();
-        MotionProfile activeProfile = generateProfile(true, distance-StartX);
-
-        while (!isStopRequested()) {
-            double profileTime = clock.seconds() - profileStart;
-            if (profileTime > activeProfile.duration()) {
-                // generate a new profile
-                movingForwards = !movingForwards;
-                activeProfile = generateProfile(movingForwards, distance-StartX);
-                profileStart = clock.seconds();
-            }
-
-            MotionState motionState = activeProfile.get(profileTime);
-            double targetPower = Kinematics.calculateMotorFeedforward(motionState.getV(), motionState.getA(), kV, kA, kStatic);
-            Pose2d poseEstimate = drive.getPoseEstimate();
-
-            double theta = drive.getPoseEstimate().getHeading();
-            double headingError = Math.min(2*Math.PI-theta,theta)/(Math.PI);
-            if (theta<0) {
-                headingError *= -1;
-            }
-            if (forwards) {
-                headingError *= -1;
-            }
-            double yError = (StartY-drive.getPoseEstimate().getY())/10;
-
-            drive.setDrivePower(new Pose2d(targetPower, yError, headingError));
-            drive.updatePoseEstimate();
-
-            double xError = (StartX-drive.getPoseEstimate().getX())/10;
-
-            if (forwards && (drive.getPoseEstimate().getX() >= distance || targetPower <= 0)) {
-                drive.setDrivePower(new Pose2d(0, 0, 0));
-                break;
-            }
-            if (!forwards && (drive.getPoseEstimate().getX() <= distance || targetPower >= 0)) {
-                drive.setDrivePower(new Pose2d(0, 0, 0));
-                break;
-            }
-            telemetry.addData("StartX", StartX);
-            telemetry.addData("TargetPower", targetPower);
-            telemetry.addData("X", drive.getPoseEstimate().getX());
-            telemetry.addData("heading", Math.toDegrees(poseEstimate.getHeading()));
-            telemetry.update();
-        }
-
-    }
-
-
-
-    public void STRAFE(double distance, SampleMecanumDrive drive, boolean left) { ;
-        NanoClock clock = NanoClock.system();
-        double profileStart = clock.seconds();
-        boolean movingForwards = true;
-        double StartY = drive.getPoseEstimate().getY();
-        double StartX = drive.getPoseEstimate().getX();
-        MotionProfile activeProfile = generateProfile(true, (distance-StartY) *1.85);
-
-
-        while (!isStopRequested()) {
-            double profileTime = clock.seconds() - profileStart;
-            if (profileTime > activeProfile.duration()) {
-                // generate a new profile
-                movingForwards = !movingForwards;
-                activeProfile = generateProfile(movingForwards, (distance-StartY) *1.85);
-                profileStart = clock.seconds();
-            }
-
-            MotionState motionState = activeProfile.get(profileTime);
-            double targetPower = Kinematics.calculateMotorFeedforward(motionState.getV(), motionState.getA(), kV, kA, kStatic);
-
-            double theta = drive.getPoseEstimate().getHeading();
-            double headingError = Math.min(2*Math.PI-theta,theta)/(Math.PI);
-            if (theta<0) {
-                headingError *= -1;
-            }
-            if (!left) {
-                headingError *= -1;
-            }
-            double xError = (StartX-drive.getPoseEstimate().getX())/10;
-
-
-            drive.setDrivePower(new Pose2d(xError, targetPower, headingError));
-            drive.updatePoseEstimate();
-
-            if (left && (drive.getPoseEstimate().getY() <= (distance) || targetPower >= 0)) {
-                drive.setDrivePower(new Pose2d(0, 0, 0));
-                break;
-            }
-            if (!left && (drive.getPoseEstimate().getY() >= (distance) || targetPower <= 0)) {
-                drive.setDrivePower(new Pose2d(0, 0, 0));
-                break;
-            }
-            Pose2d poseEstimate = drive.getPoseEstimate();
-            telemetry.addData("StartY", StartY);
-            telemetry.addData("TargetPower", targetPower);
-            telemetry.addData("Y", drive.getPoseEstimate().getY());
-            telemetry.addData("heading", Math.toDegrees(poseEstimate.getHeading()));
-            telemetry.update();
-        }
-    }
     public void TURN (SampleMecanumDrive drive){
         while  ((Math.toDegrees(drive.getPoseEstimate().getHeading())<90 || Math.toDegrees(drive.getPoseEstimate().getHeading())>270) && !isStopRequested()) {
             double theta = drive.getPoseEstimate().getHeading();
@@ -344,5 +240,8 @@ public class BlueAuto extends LinearOpMode {
         tfodParameters.minimumConfidence = 0.8;
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
+    }
+
+ */
     }
 }
